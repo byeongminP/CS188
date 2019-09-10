@@ -40,6 +40,7 @@ from game import Actions
 import util
 import time
 import search
+import math
 
 class GoWestAgent(Agent):
     "An agent that goes West until it can't."
@@ -469,7 +470,37 @@ def foodHeuristic(state, problem):
     """
     position, foodGrid = state
     "*** YOUR CODE HERE ***"
-    return 0
+    foodList = foodGrid.asList()
+    if len(foodList) == 0:
+        return 0
+
+    def euclidian(pos1):
+        def distance(pos2):
+            return math.sqrt((pos1[0] - pos2[0]) ** 2 + (pos1[1] - pos2[1]) ** 2)
+        return distance
+
+    def closest(pos, positions):
+        if len(positions) == 0:
+            return None
+        cPos = positions[0]
+        cCost = euclidian(cPos)(pos)
+        for p in positions:
+            curr = euclidian(p)(pos)
+            if curr < cCost:
+                cPos = p
+                cCost = curr
+        return cPos
+
+    closest = closest(position, foodList)
+
+    foodPoint = 0
+    for food in foodList:
+        if food[0] != position[0] and food[0] != closest[0]:
+            foodPoint += 1
+        elif food[1] != position[1] and food[1] != closest[1]:
+            foodPoint += 1
+
+    return mazeDistance(position, closest, problem.startingGameState) + foodPoint
 
 class ClosestDotSearchAgent(SearchAgent):
     "Search for all food using a sequence of searches"
@@ -500,7 +531,7 @@ class ClosestDotSearchAgent(SearchAgent):
         problem = AnyFoodSearchProblem(gameState)
 
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        return search.aStarSearch(problem)
 
 class AnyFoodSearchProblem(PositionSearchProblem):
     """
@@ -536,7 +567,7 @@ class AnyFoodSearchProblem(PositionSearchProblem):
         x,y = state
 
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        return self.food[x][y]
 
 def mazeDistance(point1, point2, gameState):
     """
